@@ -1,4 +1,3 @@
-
 import pandas as pd
 import librosa
 from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2Model
@@ -149,7 +148,7 @@ class ParallelCoAttentionNetwork(nn.Module):
 # [batch_size, channel, temporal_dim, height, width]
 def vision_embedding(directory):
     dataset = CustomDataset(directory)
-    data_loader = DataLoader(dataset, batch_size=10, shuffle=True)
+    data_loader = DataLoader(dataset, batch_size=9, shuffle=True)
     for imgs in data_loader:
             # #print(f)
             # img = Image.open(f)
@@ -188,23 +187,8 @@ def audio_embedding(directory,s):
     for filename in os.listdir(directory):
         if s in filename:
             f = os.path.join(directory, filename)
-            from scipy.io import wavfile
-            #samplerate, data = wavfile.read(f)
-            # from pydub import AudioSegment
-            # wav_file = AudioSegment.from_file(f, format="wav")
-            # wav_file_new = wav_file.set_frame_rate(16000)
-            # sample_rate=wav_file_new.frame_rate
-            # samples = wav_file_new.get_array_of_samples()
-            # input_audio=samples
-            # data type for the file
             input_audio, sample_rate = librosa.load(f, sr=16000)
-            sample_rate=16000
-            # import torchaudio
-            # waveform, sample_rate = torchaudio.load(f, normalize=True)
-            # waveform=torchaudio.functional.resample(waveform, orig_freq=sample_rate, new_freq=16000)
-            # sample_rate=16000
-            # print(waveform.shape)
-            # input_audio=waveform
+            #sample_rate=16000
             model_name = "facebook/wav2vec2-base"
             feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_name)
             model = Wav2Vec2Model.from_pretrained(model_name)
@@ -289,36 +273,33 @@ class MyModel(nn.Module):
         x = self.fc2(x)
         return x
 import os
-craft_hobbies_sub=["C1007", "C1017", "C1019","C1032", "C1033", "C1034", "C1039","C1042", "C1046", "C1052","C1054", "C1066", "C1082", "C1083","C1097", "C1104",
-             "C1106", "C1127", "C1133", "C1144","C1146","C1158", "C1159", "C1162", "C1184",
-             "C1208", "C1224","C1225","C1229","C1230","C1234", "C1238","C1243","C2039", "C2040", "C2046"]
-df_trans=pd.read_csv('/media/data1/farida1/t/craft-hobbies/craft_fold0.csv')
+craft_hobbies_sub= ["C1007", "C1017", "C1019","C1028","C1032", "C1033", "C1034", "C1039", "C1046","C1054", "C1066", "C1082", "C1083", "C1103",
+             "C1106", "C1112","C1124","C1125", "C1133", "C1144","C1146","C1158", "C1159", "C1162","C1168","C1170","C1202","C1225","C1230","C1238","C1243","C2024","C2039", "C2040", "C2046"]
+df_trans=pd.read_csv('/media/data1/farida1/t/Moviegenres/movie_fold0.csv')
 dfy=pd.read_csv('/media/data1/farida1/t/Daytimetvshow/subjects_basic_info.csv')
-# for k in range(10):
-#     test_sub_y = df_trans[df_trans.fold == k].iloc[:, 0].tolist()
-#     df_test_y = dfy[dfy['subject_id'].isin(test_sub_y)]
-#     train_sub_y = df_trans[df_trans.fold != k].iloc[:, 0].tolist()
-#     df_train_y = dfy[dfy['subject_id'].isin(train_sub_y)]
-#     # print(df_test_y)
-#     # print(df_train_y)
-#     test_sub_x = df_trans[df_trans.fold == k].iloc[:, 0].tolist()
-#     df_test_x = (test_sub_x)
-#     train_sub_x = df_trans[df_trans.fold != k].iloc[:, 0].tolist()
-df_train_x = (craft_hobbies_sub)
+for k in range(10):
+    test_sub_y = df_trans[df_trans.fold == k].iloc[:, 0].tolist()
+    df_test_y = dfy[dfy['subject_id'].isin(test_sub_y)]
+    train_sub_y = df_trans[df_trans.fold != k].iloc[:, 0].tolist()
+    df_train_y = dfy[dfy['subject_id'].isin(train_sub_y)]
+    # print(df_test_y)
+    # print(df_train_y)
+    test_sub_x = df_trans[df_trans.fold == k].iloc[:, 0].tolist()
+    df_test_x = (test_sub_x)
+    train_sub_x = df_trans[df_trans.fold != k].iloc[:, 0].tolist()
+    df_train_x = (train_sub_x)
     # for i in range(len(df_train_x)):
     #     directory = "/media/data1/jian/I-CONECT/crafts_hobbies/%s"% df_train_x[i]
     #     print(vision_embedding(directory))
 
 
-for i in range(len(df_train_x)):
-        directory = "/media/data1/farida1/t/daytime_audio"
+    for i in range(len(df_train_x)):
+        directory = "/media/data1/farida1/t/movie_genre_audio"
         last_hidden_states_s = audio_embedding(directory, df_train_x[i])
-        directory = "/media/data1/jian/I-CONECT/day_time_TV_shows/%s" % df_train_x[i]
+        directory = "/media/data1/jian/I-CONECT/movie_genres/%s" % df_train_x[i]
         last_hidden_states_v = vision_embedding(directory)
-        directory = "/media/data1/farida1/t/Daytimetvshow/%s" % df_train_x[i]
+        directory = "/media/data1/farida1/t/Moviegenres/%s" % df_train_x[i]
         last_hidden_states_w = word_embedding_with_tokens(directory)
-
-
         pcan = ParallelCoAttentionNetwork(128, 3)
         #v = torch.randn((3, 2, 128))  # visual embeddings
         # q = torch.randn(3, 2, 128)  # word embeddings
@@ -331,13 +312,15 @@ for i in range(len(df_train_x)):
         a_v, a_s, v, s = pcan(v1.cuda(), s1.cuda(), q_lens.cuda())
         s1 = s1.data.resize_(3, 128, 2)
         a_q, a_s, q, s = pcan(s1.cuda(), q1.cuda(), q_lens.cuda())
-        joint_rep = torch.cat((v, q, s))
+        joint_rep = torch.cat((s,q, v))
+
         joint_rep = joint_rep.reshape(1, 1152)
         import numpy
 
         FCmodel = MyModel().cuda()
         optimizer = torch.optim.Adam(FCmodel.parameters(), lr=1e-3)
         criterion = nn.BCEWithLogitsLoss()
+
         data = joint_rep
         # print(data.shape)
         # data = torch.randn(1, 768)
@@ -345,20 +328,11 @@ for i in range(len(df_train_x)):
         dfy = pd.read_csv("/media/data1/farida1/t/craft-hobbies/subjects_basic_info.csv",
                           usecols=['subject_id', 'normcog'])
 
-        dfy = dfy.loc[dfy.subject_id.isin(
-            ["C1007", "C1017", "C1019", "C1032", "C1033", "C1034", "C1039", "C1042", "C1046", "C1052", "C1054", "C1066",
-             "C1082", "C1083", "C1097", "C1104",
-             "C1106", "C1127", "C1133", "C1144", "C1146", "C1158", "C1159", "C1162", "C1184",
-             "C1208", "C1224", "C1225", "C1229", "C1230", "C1234", "C1238", "C1243", "C2039", "C2040", "C2046"]
-)]
+        dfy = dfy.loc[dfy.subject_id.isin([df_train_x[i]])]
         labels = dfy['normcog'].values.tolist()
-        labels_int = [int(i) for i in labels]
-
+        labels_int = [int(j) for j in labels]
         t = torch.tensor(labels_int)
-
-        # target = torch.randint(0, 2, (1, 1)).float()
-        target = t[i]
-        target = target.reshape(1, 1).float()
+        target = t.reshape(1, 1).float()
         for epoch in range(10):
             optimizer.zero_grad()
             output = FCmodel(data.cuda())
@@ -366,148 +340,19 @@ for i in range(len(df_train_x)):
             loss.backward(retain_graph=True)
             optimizer.step()
             # print('epoch {}, loss {}'.format(epoch, loss.item()))
-movie_sub = ["C1007", "C1017", "C1019","C1028","C1032", "C1033", "C1034", "C1039", "C1046","C1054", "C1066", "C1082", "C1083", "C1103",
-             "C1106", "C1112","C1124","C1125", "C1133", "C1144","C1146","C1158", "C1159", "C1162","C1168","C1170","C1202","C1225","C1230","C1238","C1243","C2024","C2039", "C2040", "C2046"]
-df_train_x = (movie_sub)
-        # for i in range(len(df_train_x)):
-        #     directory = "/media/data1/jian/I-CONECT/crafts_hobbies/%s"% df_train_x[i]
-        #     print(vision_embedding(directory))
 
-for i in range(len(df_train_x)):
-            directory = "/media/data1/farida1/t/movie_genre_audio"
-            last_hidden_states_s = audio_embedding(directory, df_train_x[i])
-            directory = "/media/data1/jian/I-CONECT/movie_genres/%s" % df_train_x[i]
-            last_hidden_states_v = vision_embedding(directory)
-            directory = "/media/data1/farida1/t/Moviegenres/%s" % df_train_x[i]
-            last_hidden_states_w = word_embedding_with_tokens(directory)
-
-            pcan = ParallelCoAttentionNetwork(128, 3)
-            # v = torch.randn((3, 2, 128))  # visual embeddings
-            # q = torch.randn(3, 2, 128)  # word embeddings
-            v1 = last_hidden_states_v
-            q1 = last_hidden_states_w
-            s1 = last_hidden_states_s
-            a = random.sample(range(1, 2), 1)
-            q_lens = torch.LongTensor(a)
-            a_v, a_q, v, q = pcan(v1.cuda(), q1.cuda(), q_lens.cuda())
-            a_v, a_s, v, s = pcan(v1.cuda(), s1.cuda(), q_lens.cuda())
-            s1 = s1.data.resize_(3, 128, 2)
-            a_q, a_s, q, s = pcan(s1.cuda(), q1.cuda(), q_lens.cuda())
-            joint_rep = torch.cat((v, q, s))
-            joint_rep = joint_rep.reshape(1, 1152)
-            import numpy
-
-            FCmodel = MyModel().cuda()
-            optimizer = torch.optim.Adam(FCmodel.parameters(), lr=1e-3)
-            criterion = nn.BCEWithLogitsLoss()
-            data = joint_rep
-            # print(data.shape)
-            # data = torch.randn(1, 768)
-
-            dfy = pd.read_csv("/media/data1/farida1/t/craft-hobbies/subjects_basic_info.csv",
-                              usecols=['subject_id', 'normcog'])
-            dfy = dfy.loc[dfy.subject_id.isin(
-                ["C1007", "C1017", "C1019", "C1028", "C1032", "C1033", "C1034", "C1039", "C1046", "C1054", "C1066",
-                 "C1082", "C1083", "C1103",
-                 "C1106", "C1112", "C1124", "C1125", "C1133", "C1144", "C1146", "C1158", "C1159", "C1162", "C1168",
-                 "C1170", "C1202", "C1225", "C1230", "C1238", "C1243", "C2024", "C2039", "C2040", "C2046"]
-            )]
-            labels = dfy['normcog'].values.tolist()
-            labels_int = [int(i) for i in labels]
-
-            t = torch.tensor(labels_int)
-
-            # target = torch.randint(0, 2, (1, 1)).float()
-            target = t[i]
-            target = target.reshape(1, 1).float()
-            for epoch in range(10):
-                optimizer.zero_grad()
-                output = FCmodel(data.cuda())
-                loss = criterion(output.cuda(), target.cuda())
-                loss.backward(retain_graph=True)
-                optimizer.step()
-school=["C1007","C1017","C1019","C1032","C1033","C1034","C1039","C1042","C1046","C1054","C1066","C1083","C1097","C1106","C1125","C1127","C1133","C1142","C1144","C1159","C1166","C1168","C1170","C1179","C1184","C1207","C1224","C1225","C1234","C1238","C1243","C2039","C2040","C2046"]
-df_train_x = (school)
-        # for i in range(len(df_train_x)):
-        #     directory = "/media/data1/jian/I-CONECT/crafts_hobbies/%s"% df_train_x[i]
-        #     print(vision_embedding(directory))
-
-for i in range(len(df_train_x)):
-
-            directory = "/media/data1/farida1/t/school_subject_audio"
-            last_hidden_states_s = audio_embedding(directory, df_train_x[i])
-            directory = "/media/data1/jian/I-CONECT/school_subjects/%s" % df_train_x[i]
-            last_hidden_states_v = vision_embedding(directory)
-            directory = "/media/data1/farida1/t/Schoolsubject/%s" % df_train_x[i]
-            last_hidden_states_w = word_embedding_with_tokens(directory)
-            pcan = ParallelCoAttentionNetwork(128, 3)
-            # v = torch.randn((3, 2, 128))  # visual embeddings
-            # q = torch.randn(3, 2, 128)  # word embeddings
-            v1 = last_hidden_states_v
-            q1 = last_hidden_states_w
-            s1 = last_hidden_states_s
-            a = random.sample(range(1, 2), 1)
-            q_lens = torch.LongTensor(a)
-            a_v, a_q, v, q = pcan(v1.cuda(), q1.cuda(), q_lens.cuda())
-            a_v, a_s, v, s = pcan(v1.cuda(), s1.cuda(), q_lens.cuda())
-            s1 = s1.data.resize_(3, 128, 2)
-            a_q, a_s, q, s = pcan(s1.cuda(), q1.cuda(), q_lens.cuda())
-            joint_rep = torch.cat((v, q, s))
-            joint_rep = joint_rep.reshape(1, 1152)
-            import numpy
-
-            FCmodel = MyModel().cuda()
-            optimizer = torch.optim.Adam(FCmodel.parameters(), lr=1e-3)
-            criterion = nn.BCEWithLogitsLoss()
-            data = joint_rep
-            # print(data.shape)
-            # data = torch.randn(1, 768)
-
-            dfy = pd.read_csv("/media/data1/farida1/t/craft-hobbies/subjects_basic_info.csv",
-                          usecols=['subject_id', 'normcog'])
-
-            dfy = dfy.loc[dfy.subject_id.isin(
-            ["C1007","C1017","C1019","C1032","C1033","C1034","C1039","C1042","C1046","C1054","C1066","C1083","C1097","C1106","C1125","C1127","C1133","C1142","C1144","C1159","C1166","C1168","C1170","C1179","C1184","C1207","C1224","C1225","C1234","C1238","C1243","C2039","C2040","C2046"])]
-            labels = dfy['normcog'].values.tolist()
-            labels_int = [int(i) for i in labels]
-
-            t = torch.tensor(labels_int)
-
-            # target = torch.randint(0, 2, (1, 1)).float()
-            target = t[i]
-            target = target.reshape(1, 1).float()
-            for epoch in range(10):
-                optimizer.zero_grad()
-                output = FCmodel(data.cuda())
-                loss = criterion(output.cuda(), target.cuda())
-                loss.backward(retain_graph=True)
-                optimizer.step()
         # check predictions
         # output = FCmodel(data.cuda())
         # probs = torch.sigmoid(output.cuda())
-#create the testset for cross-theme to handle overlaps
-df_test_x=[]
-day=["C1007", "C1017", "C1019","C1032", "C1033", "C1034", "C1039","C1042", "C1046", "C1052","C1054", "C1066", "C1082", "C1083","C1097", "C1104",
-             "C1106", "C1127", "C1133", "C1144","C1146","C1158", "C1159", "C1162", "C1184",
-             "C1208", "C1224","C1225","C1229","C1230","C1234", "C1238","C1243","C2039", "C2040", "C2046"]
-movie = ["C1007", "C1017", "C1019","C1028","C1032", "C1033", "C1034", "C1039", "C1046","C1054", "C1066", "C1082", "C1083", "C1103",
-             "C1106", "C1112","C1124","C1125", "C1133", "C1144","C1146","C1158", "C1159", "C1162","C1168","C1170","C1202","C1225","C1230","C1238","C1243","C2024","C2039", "C2040", "C2046"]
-school=["C1007","C1017","C1019","C1032","C1033","C1034","C1039","C1042","C1046","C1054","C1066","C1083","C1097","C1106","C1125","C1127","C1133","C1142","C1144","C1159","C1166","C1168","C1170","C1179","C1184","C1207","C1224","C1225","C1234","C1238","C1243","C2039","C2040","C2046"]
-c=0
-craft= ["C1007","C1018","C1019","C1033","C1034","C1039","C1046","C1054","C1070","C1083","C1103","C1104","C1113","C1124","C1127","C1133","C1156","C1159","C1162","C1166","C1168","C1170","C1179","C1184","C1202","C1229","C1238","C2040","C2046"]
-for i in range(len(day)):
-    if day[i] not in craft or day[i] not in day or day[i] not in movie:
-        c=c+1
-        df_test_x.append(day[i])
 
-print((df_test_x))
-#df_test_x= ["C1007","C1018","C1019","C1033","C1034","C1039","C1046","C1054","C1070","C1083","C1103","C1104","C1113","C1124","C1127","C1133","C1156","C1159","C1162","C1166","C1168","C1170","C1179","C1184","C1202","C1229","C1238","C2040","C2046"]
-for i in range(len(df_test_x)):
-        directory = "/media/data1/farida1/t/craft_audio"
+
+
+    for i in range(len(df_test_x)):
+        directory = "/media/data1/farida1/t/movie_genre_audio"
         last_hidden_states_s = audio_embedding(directory, df_test_x[i])
-        directory = "/media/data1/jian/I-CONECT/crafts_hobbies/%s" % df_test_x[i]
+        directory = "/media/data1/jian/I-CONECT/movie_genres/%s" % df_test_x[i]
         last_hidden_states_v = vision_embedding(directory)
-        directory = "/media/data1/farida1/t/craft-hobbies/%s" % df_test_x[i]
+        directory = "/media/data1/farida1/t/Moviegenres/%s" % df_test_x[i]
         last_hidden_states_w = word_embedding_with_tokens(directory)
         pcan = ParallelCoAttentionNetwork(128, 3)
         v1 = last_hidden_states_v
@@ -519,7 +364,7 @@ for i in range(len(df_test_x)):
         a_v, a_s, v, s = pcan(v1.cuda(), s1.cuda(), q_lens.cuda())
         s1 = s1.data.resize_(3, 128, 2)
         a_q, a_s, q, s = pcan(s1.cuda(), q1.cuda(), q_lens.cuda())
-        joint_rep = torch.cat((v, q, s))
+        joint_rep = torch.cat((s,q, v))
         joint_rep = joint_rep.reshape(1, 1152)
         # q_lens=torch.LongTensor([5,1,2,3,4,6,7]) #lengths of words' embedding
         data=joint_rep
@@ -548,11 +393,12 @@ for i in range(len(df_test_x)):
         print(df_test_x[i])
         print("Y pred prob:")
         print(probs)
-        #temp_y = df_test_y['normcog'].tolist()
-        print(df_temp['normcog'])
+        temp_y = df_test_y['normcog'].tolist()
+        print(temp_y[i])
 e = datetime.datetime.now()
 
 print ("Current date and time = %s" % e)
+
 print ("Today's date:  = %s/%s/%s" % (e.day, e.month, e.year))
+
 print ("The time is now: = %s:%s:%s" % (e.hour, e.minute, e.second))
-#cross: train with daytime+movie+school and test with craft
