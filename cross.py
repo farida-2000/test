@@ -496,7 +496,7 @@ school=["C1007","C1017","C1019","C1032","C1033","C1034","C1039","C1042","C1046",
 c=0
 craft= ["C1007","C1018","C1019","C1033","C1034","C1039","C1046","C1054","C1070","C1083","C1103","C1104","C1113","C1124","C1127","C1133","C1156","C1159","C1162","C1166","C1168","C1170","C1179","C1184","C1202","C1229","C1238","C2040","C2046"]
 for i in range(len(day)):
-    if day[i] not in craft or day[i] not in day or day[i] not in movie:
+    if day[i] not in craft and day[i] not in day and day[i] not in movie:
         c=c+1
         df_test_x.append(day[i])
 
