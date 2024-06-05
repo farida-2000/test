@@ -4,7 +4,7 @@ We have used Video Swin Transformer By [Ze Liu](https://github.com/zeliu98/)\*, 
 ["Video Swin Transformer"](https://arxiv.org/abs/2106.13230). It is based on [mmaction2](https://github.com/open-mmlab/mmaction2).
 
 The Wav2vec base model is used for audio/speech embedding. The speech was sampled at 16 kHz to be compatible with Wav2vec model.
-The vocab size is 32. 
+The vocab size is 32. Diarization (categorizing speaker1 vs speaker2 was done on the speech based on the start and end time of each sentence given by transcript). After extracting the patient's speech, all parts of the conversation related to the patient were concatenated together and a new audio file for only the patient was generated which was used for the speech extraction being fed to the wav2vec. 
 
 BERT base uncased is used for word embedding extraction. 
 For each experiment, we run the respective example_name of experiment/theme which is set up on 5 times running to address the generalizability of the model with different fold configurations.
